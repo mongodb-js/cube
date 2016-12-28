@@ -3,7 +3,8 @@
   "version": "0.2.12",
   "description": "A system for analyzing time series data using MongoDB and Node.",
   "scripts": {
-    "fmt": "mongodb-js-fmt"
+    "fmt": "mongodb-js-fmt",
+    "check": "mongodb-js-precommit"
   },
   "keywords": [
     "time series"
@@ -27,6 +28,8 @@
     "websocket": "^1.0.8"
   },
   "devDependencies": {
-    "mongodb-js-fmt": "^0.0.3"
+    "eslint-config-mongodb-js": "^2.2.0",
+    "mongodb-js-fmt": "^0.0.3",
+    "mongodb-js-precommit": "^0.2.9"
   }
 }
