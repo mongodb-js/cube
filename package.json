@@ -20,6 +20,8 @@
   },
   "main": "./lib/cube",
   "dependencies": {
+    "commander": "^2.9.0",
+    "express": "^4.14.0",
     "mongodb": "^2.2.16",
     "node-static": "^0.6.5",
     "node-websocket-server": "^1.1.4",
@@ -29,7 +31,9 @@
   },
   "devDependencies": {
     "eslint-config-mongodb-js": "^2.2.0",
+    "mocha": "^3.2.0",
     "mongodb-js-fmt": "^0.0.3",
-    "mongodb-js-precommit": "^0.2.9"
+    "mongodb-js-precommit": "^0.2.9",
+    "mongodb-runner": "^3.4.0"
   }
 }

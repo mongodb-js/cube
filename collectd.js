@@ -1,20 +1,44 @@
+
+// For "derive" events, we must compute the delta since the last event.
+function value(i) {
+  var d = values.values[i];
+  if (values.dstypes[i] === 'derive') {
+    var key = [
+      values.host,
+      values.plugin,
+      values.plugin_instance,
+      values.type,
+      values.type_instance,
+      values.dsnames[i]
+    ].join('/');
+
+    var value = key in valuesByKey ? valuesByKey[key] : d;
+    valuesByKey[key] = d;
+    d -= value;
+  }
+  return d;
+}
+
 exports.putter = function(putter) {
   var valuesByKey = {};
 
   // Converts a collectd value list to a Cube event.
   function event(values) {
     var root = {
-        host: values.host
-      };
+      host: values.host
+    };
     var data = root;
     var parent;
     var key;
 
     // The plugin and type are required. If the type is the same as the plugin,
     // then ignore the type (for example, memory/memory and load/load).
-    parent = data, data = data[key = values.plugin] || (data[values.plugin] = {});
-    if (values.type != values.plugin) {
-      parent = data, data = data[key = values.type] || (data[values.type] = {});
+    parent = data;
+    data = data[key = values.plugin] || (data[values.plugin] = {});
+
+    if (values.type !== values.plugin) {
+      parent = data;
+      data = data[key = values.type] || (data[values.type] = {});
     }
 
     // The plugin_instance and type_instance are optional.
@@ -29,27 +53,12 @@ exports.putter = function(putter) {
     // values; just store the single value using the type_instance name (e.g.,
     // memory/memory-inactive, df-root/df_complex-used). Otherwise, iterate over
     // the received values and store them as a map.
-    if (values.values.length == 1) {
+    if (values.values.length === 1) {
       parent[key] = value(0);
     } else {
       values.dsnames.forEach(function(d, i) {
         data[d] = value(i);
       });
-    }
-
-    // For "derive" events, we must compute the delta since the last event.
-    function value(i) {
-      var d = values.values[i];
-      switch (values.dstypes[i]) {
-        case 'derive': {
-          var key = values.host + '/' + values.plugin + '/' + values.plugin_instance + '/' + values.type + '/' + values.type_instance + '/' + values.dsnames[i];
-          var value = key in valuesByKey ? valuesByKey[key] : d;
-          valuesByKey[key] = d;
-          d -= value;
-          break;
-        }
-      }
-      return d;
     }
 
     return {

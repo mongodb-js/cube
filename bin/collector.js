@@ -1,9 +1,13 @@
-var options = require('./collector-config');
-var cube = require('../');
-var server = cube.server(options);
+#!/usr/bin/env node
 
-server.register = function(db, endpoints) {
-  cube.collector.register(db, endpoints);
-};
+const express = require('express');
+const mongodb = require('mongodb');
 
-server.start();
+
+
+var event = require('../lib/event');
+
+app.post('/api/v1/event', function(req, res) {
+  req.body
+  res.status(200).send('ok');
+});

@@ -1,14 +1,14 @@
-var util = require("util"),
-    url = require("url"),
-    http = require("http"),
-    dgram = require("dgram"),
-    websocket = require("websocket"),
-    websprocket = require("websocket-server"),
-    static = require("node-static"),
-    database = require('./database');
+var util = require('util');
+var url = require('url');
+var http = require('http');
+// var dgram = require('dgram');
+// var websocket = require('websocket');
+// var websprocket = require('websocket-server');
+var static = require('node-static');
+var database = require('./database');
 
 // And then this happened:
-websprocket.Connection = require("../../node_modules/websocket-server/lib/ws/connection");
+// websprocket.Connection = require('../../node_modules/websocket-server/lib/ws/connection');
 
 // Configuration for WebSocket requests.
 var wsOptions =  {
@@ -26,28 +26,27 @@ var wsOptions =  {
 module.exports = function(options) {
 
   // Don't crash on errors.
-  process.on("uncaughtException", function(error) {
-    util.log("uncaught exception: " + error);
+  process.on('uncaughtException', function(error) {
+    util.log('uncaught exception: ' + error);
     util.log(error.stack);
   });
 
   var server = {},
       primary = http.createServer(),
-      secondary = websprocket.createServer(),
-      file = new static.Server("static"),
+      file = new static.Server('static'),
       meta,
-      endpoints = {ws: [], http: []},
+      endpoints = {http: []},
       id = 0;
 
   secondary.server = primary;
 
   // Register primary WebSocket listener with fallback.
-  primary.on("upgrade", function(request, socket, head) {
-    if ("sec-websocket-version" in request.headers) {
+  primary.on('upgrade', function(request, socket, head) {
+    if ('sec-websocket-version' in request.headers) {
       request = new websocket.request(socket, request, wsOptions);
       request.readHandshake();
       connect(request.accept(request.requestedProtocols[0], request.origin), request.httpRequest);
-    } else if (request.method === "GET"
+    } else if (request.method === 'GET'
         && /^websocket$/i.test(request.headers.upgrade)
         && /^upgrade$/i.test(request.headers.connection)) {
       new websprocket.Connection(secondary.manager, secondary.options, request, socket, head);
@@ -55,7 +54,7 @@ module.exports = function(options) {
   });
 
   // Register secondary WebSocket listener.
-  secondary.on("connection", function(connection) {
+  secondary.on('connection', function(connection) {
     connection.socket = connection._socket;
     connection.remoteAddress = connection.socket.remoteAddress;
     connection.sendUTF = connection.send;
@@ -75,21 +74,21 @@ module.exports = function(options) {
         callback.id = ++id;
 
         // Listen for socket disconnect.
-        if (e.dispatch.close) connection.socket.on("end", function() {
+        if (e.dispatch.close) connection.socket.on('end', function() {
           e.dispatch.close(callback);
         });
 
-        connection.on("message", function(message) {
+        connection.on('message', function(message) {
           e.dispatch(JSON.parse(message.utf8Data || message), callback);
         });
 
         meta({
-          type: "cube_request",
+          type: 'cube_request',
           time: Date.now(),
           data: {
             ip: connection.remoteAddress,
             path: request.url,
-            method: "WebSocket"
+            method: 'WebSocket'
           }
         });
 
@@ -101,7 +100,7 @@ module.exports = function(options) {
   }
 
   // Register HTTP listener.
-  primary.on("request", function(request, response) {
+  primary.on('request', function(request, response) {
     var u = url.parse(request.url);
 
     // Forward messages to the appropriate endpoint, or 404.
@@ -110,7 +109,7 @@ module.exports = function(options) {
         e.dispatch(request, response);
 
         meta({
-          type: "cube_request",
+          type: 'cube_request',
           time: Date.now(),
           data: {
             ip: request.connection.remoteAddress,
@@ -124,11 +123,11 @@ module.exports = function(options) {
     }
 
     // If this request wasn't matched, see if there's a static file to serve.
-    request.on("end", function() {
+    request.on('end', function() {
       file.serve(request, response, function(error) {
         if (error) {
-          response.writeHead(error.status, {"Content-Type": "text/plain"});
-          response.end(error.status + "");
+          response.writeHead(error.status, {'Content-Type': 'text/plain'});
+          response.end(error.status + '');
         }
       });
     });
@@ -141,21 +140,13 @@ module.exports = function(options) {
 
   server.start = function() {
     // Connect to mongodb.
-    util.log("starting mongodb client");
-    database.open(options, function (error, db) {
+    util.log('starting mongodb client');
+    database.open(options, function(error, db) {
       if (error) throw error;
       server.register(db, endpoints);
-      meta = require("./event").putter(db);
-      util.log("starting http server on port " + options["http-port"]);
-      primary.listen(options["http-port"]);
-      if (endpoints.udp) {
-        util.log("starting udp server on port " + options["udp-port"]);
-        var udp = dgram.createSocket("udp4");
-        udp.on("message", function(message) {
-          endpoints.udp(JSON.parse(message.toString("utf8")), ignore);
-        });
-        udp.bind(options["udp-port"]);
-      }
+      meta = require('./event').putter(db);
+      util.log('starting http server on port ' + options['http-port']);
+      primary.listen(options['http-port']);
     });
   };
 
