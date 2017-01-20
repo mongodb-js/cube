@@ -1,6 +1,6 @@
 var util = require('util');
 var websocket = require('websocket');
-var debug = require('debug')('cube:emitter-ws');
+var debug = require('debug')('cube-client:ws');
 
 // returns an emitter which sends events one at a time to the given ws://host:port
 module.exports = function(protocol, host, port) {

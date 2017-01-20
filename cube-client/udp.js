@@ -1,15 +1,14 @@
-var util = require("util"),
-    dgram = require("dgram"),
-    setImmediate = require("./set-immediate");
+var util = require('util');
+var dgram = require('dgram');
 
-// returns an emitter which sneds events one at a time to the given udp://host:port
-module.exports = function(protocol, host, port) {
-  var emitter = {},
-      queue = [],
-      udp = dgram.createSocket("udp4"),
-      closing;
-
-  if (protocol != "udp:") throw new Error("invalid UDP protocol");
+/**
+ * Returns an emitter which sends events one at a time to the given [`host`, `port`].
+ */
+module.exports = function(host, port) {
+  var emitter = {};
+  var queue = [];
+  var udp = dgram.createSocket('udp4');
+  var closing;
 
   function send() {
     var event = queue.pop();

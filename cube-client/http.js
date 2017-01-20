@@ -1,5 +1,5 @@
-var util = require("util");
-var http = require("http");
+var util = require('util');
+var http = require('http');
 var request = require('superagent');
 
 var debug = require('debug')('cube-client:http');
