@@ -1,20 +1,22 @@
-var util = require("util"),
-    websocket = require("websocket");
+var util = require('util');
+var websocket = require('websocket');
+var debug = require('debug')('cube:emitter-ws');
 
 // returns an emitter which sends events one at a time to the given ws://host:port
 module.exports = function(protocol, host, port) {
-  var emitter = {},
-      queue = [],
-      url = protocol + "//" + host + ":" + port + "/1.0/event/put",
-      socket,
-      timeout,
-      closing;
+  var url = `${protocol}//${host}:${port}/1.0/event/put`;
+
+  var emitter = {};
+  var queue = [];
+  var socket;
+  var timeout;
+  var closing;
 
   function close() {
     if (socket) {
-      util.log("closing socket");
-      socket.removeListener("error", reopen);
-      socket.removeListener("close", reopen);
+      debug('closing socket');
+      socket.removeListener('error', reopen);
+      socket.removeListener('close', reopen);
       socket.close();
       socket = null;
     }
@@ -23,32 +25,35 @@ module.exports = function(protocol, host, port) {
   function closeWhenDone() {
     closing = true;
     if (socket) {
-      if (!socket.bytesWaitingToFlush) close();
-      else setTimeout(closeWhenDone, 1000);
+      if (!socket.bytesWaitingToFlush) {
+        close();
+      } else {
+        setTimeout(closeWhenDone, 1000);
+      }
     }
   }
 
   function open() {
     timeout = 0;
     close();
-    util.log("opening socket: " + url);
+    debug('opening socket', url);
     var client = new websocket.client();
-    client.on("connect", function(connection) {
+    client.on('connect', function(connection) {
       socket = connection;
-      socket.on("message", log);
-      socket.on("error", reopen);
-      socket.on("close", reopen);
+      socket.on('message', log);
+      socket.on('error', reopen);
+      socket.on('close', reopen);
       flush();
       if (closing) closeWhenDone();
     });
-    client.on("connectFailed", reopen);
-    client.on("error", reopen);
+    client.on('connectFailed', reopen);
+    client.on('error', reopen);
     client.connect(url);
   }
 
   function reopen() {
     if (!timeout && !closing) {
-      util.log("reopening soon");
+      debug('reopening soon');
       timeout = setTimeout(open, 1000);
     }
   }
@@ -59,7 +64,7 @@ module.exports = function(protocol, host, port) {
       try {
         socket.sendUTF(JSON.stringify(event));
       } catch (e) {
-        util.log(e.stack);
+        debug(e.stack);
         reopen();
         return queue.push(event);
       }
@@ -67,7 +72,7 @@ module.exports = function(protocol, host, port) {
   }
 
   function log(message) {
-    util.log(message.utf8Data);
+    debug(message.utf8Data);
   }
 
   emitter.send = function(event) {

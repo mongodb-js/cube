@@ -16,11 +16,25 @@
   },
   "main": "./lib/cube",
   "dependencies": {
-    "mongodb": "~1.3.18",
+    "debug": "^2.6.0",
+    "mongodb": "^2.2.21",
     "node-static": "0.6.5",
+    "node-websocket-server": "^1.1.4",
     "pegjs": "0.7.0",
+    "superagent": "^3.3.2",
     "vows": "0.7.0",
-    "websocket": "1.0.8",
-    "websocket-server": "1.4.04"
+    "websocket": "1.0.8"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  },
+  "bin": {
+    "cube-collector": "bin/collector.js",
+    "cube-evaluator": "bin/evaluator.js"
+  },
+  "scripts": {
+    "start": "npm run start-evaluator",
+    "start-collector": "DEBUG=* nodemon -w ./lib ./bin/collector.js",
+    "start-evaluator": "DEBUG=* nodemon -w ./lib ./bin/evaluator.js"
   }
 }

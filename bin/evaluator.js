@@ -1,6 +1,9 @@
-var options = require("./evaluator-config"),
-    cube = require("../"),
-    server = cube.server(options);
+#! /usr/bin/env node
+
+var cube = require('../');
+var server = cube.server({
+  'http-port': 1081
+});
 
 server.register = function(db, endpoints) {
   cube.evaluator.register(db, endpoints);
